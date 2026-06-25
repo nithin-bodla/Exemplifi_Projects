@@ -82,3 +82,5 @@ PDF-to-HTML-Automation/
 ├── media/              # Folder where extracted assets are stored
 └── requirements.txt    # Required Python packages list
 ```
+### Video Reference link
+- https://www.awesomescreenshot.com/video/53674023?key=5f4c12743fe223b5c5ed71a1f08aff98
