@@ -1,0 +1,12 @@
+# OS generated files
+.DS_Store
+
+# Ignore uploaded PDFs
+dropzone/
+
+# Ignore extracted media
+media/
+
+# Ignore generated HTML webifier pages (except index.html)
+*.html
+!index.html

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplifi PDF to HTML Webifier</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .uploader-card {
+            background-color: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(2, 48, 44, 0.08);
+            border: 1px solid var(--gray-border);
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        
+        .uploader-header {
+            margin-bottom: 2rem;
+        }
+        
+        .uploader-header h2 {
+            margin-top: 0;
+            font-size: 2rem;
+            color: var(--dark-green);
+        }
+        
+        .uploader-header p {
+            color: #4A5568;
+            font-size: 1.05rem;
+            margin-top: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .dropzone-area {
+            border: 2px dashed var(--sage-green);
+            background-color: var(--gray-light);
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            outline: none;
+        }
+
+        .dropzone-area.dragover {
+            border-color: var(--dark-green);
+            background-color: var(--light-green);
+            transform: scale(1.02);
+        }
+
+        .dropzone-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.25rem;
+            display: block;
+            line-height: 1;
+        }
+
+        .dropzone-text {
+            font-weight: 600;
+            color: var(--dark-green);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone-subtext {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Loading Spinner */
+        .loading-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--light-green);
+            border-top: 5px solid var(--dark-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-weight: 600;
+            color: var(--dark-green);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-subtext {
+            font-size: 0.9rem;
+            color: #718096;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Success Card */
+        .success-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--dark-green);
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .success-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-green);
+            margin-bottom: 1.5rem;
+        }
+
+        .result-box {
+            width: 100%;
+            background-color: var(--gray-light);
+            border: 1px solid var(--gray-border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            text-align: left;
+        }
+
+        .result-item {
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 700;
+            color: var(--dark-green);
+            display: inline-block;
+            width: 100px;
+        }
+
+        .result-value {
+            color: #2D3748;
+            word-break: break-all;
+        }
+
+        .result-link-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            background-color: var(--white);
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .result-link {
+            flex-grow: 1;
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--dark-green);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .btn-copy-small {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+            color: #718096;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-copy-small:hover {
+            color: var(--dark-green);
+        }
+
+        .actions-group {
+            display: flex;
+            gap: 1rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-action {
+            flex-grow: 1;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .btn-secondary {
+            background-color: var(--white);
+            color: var(--dark-green);
+            border: 1px solid var(--dark-green);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-green);
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-container">
+            <a href="/" class="logo">
+                <img src="exemplifi_logo.png?v=2" alt="exemplifi" style="height: 36px; display: block; border-radius: 4px;">
+            </a>
+        </div>
+    </header>
+
+    <div class="uploader-card">
+        <div class="uploader-header">
+            <h2>PDF to HTML Webifier</h2>
+            <p>Upload a PDF document to parse it into a responsive corporate web page with automated media extraction.</p>
+        </div>
+
+        <!-- Uploader Dropzone -->
+        <div id="dropzone" class="dropzone-area" onclick="document.getElementById('fileInput').click()">
+            <span class="dropzone-icon">📄</span>
+            <div class="dropzone-text">Drag & Drop PDF here</div>
+            <div class="dropzone-subtext">or click to browse from computer</div>
+            <input type="file" id="fileInput" accept="application/pdf">
+        </div>
+
+        <!-- Loading View -->
+        <div id="loading" class="loading-container">
+            <div class="spinner"></div>
+            <div class="loading-text">Uploading & Converting...</div>
+            <div class="loading-subtext">Running offline visual and table extraction pipeline</div>
+        </div>
+
+        <!-- Success View -->
+        <div id="success" class="success-container">
+            <div class="success-icon" style="color: var(--dark-green);">✓</div>
+            <div class="success-title">Webified Successfully!</div>
+            
+            <div class="result-box">
+                <div class="result-item">
+                    <span class="result-label">PDF Name:</span>
+                    <span id="pdfNameVal" class="result-value">document.pdf</span>
+                </div>
+                <div class="result-item" style="margin-top: 1rem;">
+                    <span class="result-label" style="display: block; width: auto; margin-bottom: 0.25rem;">Generated Page Link:</span>
+                    <div class="result-link-wrapper">
+                        <span id="pageLinkVal" class="result-link">/DART-WP-CMS-Training-Documentation.html</span>
+                        <button class="btn-copy-small" onclick="copyPageLink()" title="Copy Page Link">
+                            <span id="copyIcon">📋</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-group">
+                <a id="openPageBtn" href="#" target="_blank" class="btn btn-header btn-action">Open Web Page</a>
+                <button onclick="resetUploader()" class="btn btn-secondary btn-action">Convert Another</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer" style="margin-top: 4rem;">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <img src="exemplifi_logo.png?v=2" alt="exemplifi" style="height: 48px; display: block; border-radius: 4px; margin-bottom: 1rem;">
+                <p>End-to-End Government Website Design & Development</p>
+                <p class="address">2563 Waverley Street, Palo Alto, CA 94301</p>
+            </div>
+            <div class="footer-links">
+                <a href="tel:+16172337510">(617) 233-7510</a>
+                <a href="mailto:contact@exemplifi.io">contact@exemplifi.io</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Exemplifi. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const success = document.getElementById('success');
+        const pdfNameVal = document.getElementById('pdfNameVal');
+        const pageLinkVal = document.getElementById('pageLinkVal');
+        const openPageBtn = document.getElementById('openPageBtn');
+        const copyIcon = document.getElementById('copyIcon');
+
+        let generatedUrl = '';
+
+        // Prevent defaults for drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop zone on drag events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+        });
+
+        // Handle dropped files
+        dropzone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        // Handle file selection via click
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                handleFileUpload(fileInput.files[0]);
+            }
+        });
+
+        function handleFileUpload(file) {
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a PDF document only.');
+                return;
+            }
+
+            // Show loading view
+            dropzone.style.display = 'none';
+            loading.style.display = 'flex';
+            success.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => { throw new Error(err.error || 'Server error') });
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Populate success state
+                pdfNameVal.textContent = data.fileName;
+                const absoluteLink = window.location.origin + data.htmlUrl;
+                pageLinkVal.textContent = absoluteLink;
+                openPageBtn.href = data.htmlUrl;
+                generatedUrl = absoluteLink;
+
+                // Show success view
+                loading.style.display = 'none';
+                success.style.display = 'flex';
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error webifying PDF: ' + err.message);
+                resetUploader();
+            });
+        }
+
+        function copyPageLink() {
+            navigator.clipboard.writeText(generatedUrl)
+                .then(() => {
+                    copyIcon.textContent = '✓';
+                    setTimeout(() => {
+                        copyIcon.textContent = '📋';
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+        }
+
+        function resetUploader() {
+            fileInput.value = '';
+            dropzone.style.display = 'block';
+            loading.style.display = 'none';
+            success.style.display = 'none';
+            copyIcon.textContent = '📋';
+        }
+    </script>
+</body>
+</html>
